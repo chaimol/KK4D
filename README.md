@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # KK4D
 This is a pipline for analysis of genome Ka,Ks,4DTv,coline
 =======
@@ -90,7 +89,3 @@ Update info:
 2. All commands in this version have been tested and run normally.
 3. This version does not include a visualization module, and the next version may add the visualization module.
 
-
-
-
->>>>>>> 893dba9 (add KK4D)
