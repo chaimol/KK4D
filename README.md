@@ -1,3 +1,6 @@
+# KK4D
+This is a pipline for analysis of genome Ka,Ks,4DTv,coline
+=======
 # Readme.md
 ### this is a pipline for analysis of coline genes,KaKs and 4DTv .
 #### It can analysis 2 species or 1 species.
@@ -8,11 +11,21 @@ genome.gff3
 genome.pep.fa 
 genome.cds.fa
 
-# Require
-conda,linux
+# Require software
+
+`Install.sh` use conda for install 
+[jcvi](https://github.com/tanghaibao/jcvi)
+
+#### Require software (These software will be automatically added to your ~/.bashrc)
+The binary version of the dependent software has been provided, and you don’t have to install a list of software yourself. You also can install these software yourself and add it to the ~/.bashrc.
+- [seqkit](https://github.com/shenwei356/seqkit)
+- [mafft](https://mafft.cbrc.jp/alignment/software/)
+- [KaKs_Calculator 2.0](https://sourceforge.net/projects/kakscalculator2/)
+- [ParaAT2.0](ftp://download.big.ac.cn/bigd/tools/ParaAT2.0.tar.gz)
+
 
 # Install
-- Step1:Install software
+- Step1:Install software (Install.sh will use conda install jcvi,and put other require software to your ~/.bashrc )
 ```
 bash Install.sh
 source ~/.bashrc
@@ -85,7 +98,7 @@ Update info:
 1. The V0.01 has to much bug.
 2. All commands in this version have been tested and run normally.
 3. This version does not include a visualization module, and the next version may add the visualization module.
-
-
-
-
+#### 2021.8.13 update the Version to 0.021
+1. update the Require software info 
+2. add require software info
+3. modify the Install.sh , debug the Error of "mafft" or "KaKs_Calculator" not found.
