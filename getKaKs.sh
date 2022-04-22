@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/bash
 ####此程序是函数定义脚本。主运行脚本是run.sh
 
 ##读取配置文件
 #source config.ini
-if [ $group -eq 2 ];then
+if [ ${group} -eq 2 ];then
 	prefix1=${abbr[0]}
 	prefix2=${abbr[1]}
 	gff3file1=${gff3[0]}
@@ -59,8 +59,7 @@ function getbed(){
 		
 		key is gfffile the Prefix for column 9.(Value:ID or other,Default:ID)
 		"
-		return 1
-		exit
+		exit 1
 	else
 		inputgff3=$1
 		prefix=$2
@@ -71,10 +70,11 @@ function getbed(){
 			key=$4
 		else
 			echo "Usage: -h /-help "
+			exit 1
 		fi
 	fi
-	python -m jcvi.formats.gff bed --type=${type:=mRNA} --key=${key:=ID} ${inputgff3} -o ${prefix}.bed
-	python -m jcvi.formats.bed uniq ${prefix}.bed
+	python3 -m jcvi.formats.gff bed --type=${type:=mRNA} --key=${key:=ID} ${inputgff3} -o ${prefix}.bed
+	python3 -m jcvi.formats.bed uniq ${prefix}.bed
 	mv ${prefix}.uniq.bed ${prefix}.bed
 }
 
@@ -86,8 +86,7 @@ function getcds(){
 		input_cdsfa can be fa or fa.gz .(Required)
 		prefix is the input bed file prefix.Preferably a 3-character abbr.(Required)
 		"
-		return 1
-		exit
+		exit 1
 	else
 		input_cdsfa=$1
 		prefix=$2
@@ -102,8 +101,7 @@ function getpep(){
 		input_proteinfa can be fa or fa.gz .(Required)
 		prefix is the input bed file prefix.Preferably a 3-character abbr.(Required)
 		"
-		return 1
-		exit
+		exit 1
 	else
 		input_proteinfa=$1
 		prefix=$2
@@ -117,14 +115,15 @@ function getcoline(){
 		echo "usage:
 		getcoline abbr1 abbr2 
 		"
-		return 1
-		exit
+		exit 1
 	fi
 	species1="$1"
 	species2="$2"
 	## 运行代码
-	python -m jcvi.compara.catalog ortholog --dbtype prot --no_strip_names $species1 $species2
-	python -m jcvi.compara.synteny screen --minspan=30 --simple $species1.$species2.anchors $species1.$species2.anchors.new
+	python3 -m jcvi.compara.catalog ortholog --dbtype prot --no_strip_names $species1 $species2
+	python3 -m jcvi.compara.synteny screen --minspan=30 --simple $species1.$species2.anchors $species1.$species2.anchors.new
+	#绘制dotplot的共线性文件
+	python3 -m jcvi.graphics.dotplot $species1.$species2.anchors --nosep --nochpf --colororientation --dpi=300 --font=Arial -o ${species1}.${species2}.dotplot.pdf
 }
 
 function VisualColine(){
@@ -132,8 +131,7 @@ function VisualColine(){
 		echo "usage:
 		VisualColine abbr1 abbr2 chrnum1 chrnum2
 		"
-		return 1
-		exit
+		exit 1
 	fi
 	abbr1=$1
 	abbr2=$2
@@ -144,19 +142,35 @@ function VisualColine(){
 	cat $abbr1.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr1.ids
 	cat $abbr2.bed|cut -f1|sort |uniq |head -$chrnum2 |rev|cut -d " " -f1|rev >$abbr2.id
 	cat $abbr2.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr2.ids
-	cat $abbr1.ids $abbr2.ids >seqids
+	cat $abbr1.ids $abbr2.ids >${abbr1}.${abbr2}.seqids
 	
-	# 设置颜色，长宽等
-	echo "
-	# y, xstart, xend, rotation, color, label, va, bed
-	 .6,    .1,    .8,    0,    red,    $latin1,    top,     $abbr1.bed
-	 .4,    .1,    .8,    0,    blue,    $latin2,    top,    $abbr2.bed
-	# edges
-	e, 0, 1, $abbr1.$abbr2.anchors.simple
-	" >layout
+	# 设置颜色，长宽等,注意下面的代码一定不能修改缩进，否则后续就会报错，python3严格依赖缩进
+echo -e '# y, xstart, xend, rotation, color, label, va, bed
+ .6,    .1,    .8,    0,    red,    latin1,    top,     abbr1.bed
+ .4,    .1,    .8,    0,    blue,    latin2,    top,    abbr2.bed
+# edges
+e, 0, 1, abbr1.abbr2.anchors.simple' >${abbr1}.${abbr2}.layout
+	sed -i "s/abbr1/${abbr1}/g;s/abbr2/${abbr2}/g;s/latin1/${latin1}/g;s/latin2/${latin2}/g;" ${abbr1}.${abbr2}.layout
 	#生成共线性图片，很可能运行失败。注意：修改layout的细节就好，python3对文件要求比较严格。
-	python -m jcvi.graphics.karyotype seqids layout
-	echo "karyotype.pdf is the coline picture!"
+	python3 -m jcvi.graphics.karyotype ${abbr1}.${abbr2}.seqids ${abbr1}.${abbr2}.layout --font=Arial 
+	#输出的是基于块的共线性
+	mv karyotype.pdf ${abbr1}_${abbr2}.block.coline.pdf
+	echo "${abbr1}_${abbr2}.block.coline.pdf is the coline picture!"
+	
+	#输出的是具体的基因对的共线性
+	cat ${abbr1}.${abbr2}.anchors|grep -v ^#|awk '{print $1"\t"$1"\t"$2"\t"$2"\t"$3"\t""+"}' >${abbr1}.${abbr2}.anchors.sample
+	sed -i 's/simple/sample/g' ${abbr1}.${abbr2}.layout
+	python3 -m jcvi.graphics.karyotype ${abbr1}.${abbr2}.seqids ${abbr1}.${abbr2}.layout --font=Arial --nocircles 
+	#输出的是基于块的共线性
+	mv karyotype.pdf ${abbr1}_${abbr2}.gene.coline.pdf
+	echo "${abbr1}_${abbr2}.gene.coline.pdf is the coline picture!"
+	
+	#准备barplot和sankey的绘图数据
+	cat <(awk '{print $1,$4,$2,$3}' ${abbr1}.bed|sed "s/^/${abbr1}/g") <(awk '{print $1,$4,$2,$3}' ${abbr2}.bed|sed "s/^/${abbr2}/g") |tr " " "\t" >${abbr1}.${abbr2}.gff
+	grep -f <(sed "s/^/${abbr1}/g" ${abbr1}.id) ${abbr1}.${abbr2}.gff >${abbr1}.coline.gff
+	grep -f <(sed "s/^/${abbr2}/g" ${abbr2}.id) ${abbr1}.${abbr2}.gff >${abbr2}.coline.gff
+	cat ${abbr1}.coline.gff ${abbr2}.coline.gff >${abbr1}.${abbr2}.gff
+	grep -v ^# ${abbr1}.${abbr2}.anchors|cut -f1-2 >${abbr1}.${abbr2}.bar.coline
 }
 
 #准备kaks和4DTv的文件
@@ -165,6 +179,7 @@ function prepareResult(){
 		echo "Usage:prepareResult abbr1 abbr2 threads 
 		threads should be a number 32 or 64 or other
 		"
+		exit 1
 	elif [ $# -eq 2 ];then
 		abbr1=$1
 		abbr2=$2
@@ -190,12 +205,14 @@ function prepareResult(){
 				;;
 		esac
 	fi
-	echo ${thread:=32} >proc
+	echo ${thread:=32} >${abbr1}.${abbr2}.proc
 	cat ${abbr1}.${abbr2}.anchors|grep -v ^#|cut -f 1-2 >${abbr1}_${abbr2}.homolog
 	cat ${abbr1}.cds ${abbr2}.cds >${abbr1}_${abbr2}.cds
 	cat ${abbr1}.pep ${abbr2}.pep >${abbr1}_${abbr2}.pep
 	#此程序需要依赖较多
-	ParaAT.pl -h ${abbr1}_${abbr2}.homolog -n ${abbr1}_${abbr2}.cds -a ${abbr1}_${abbr2}.pep -p proc -m mafft -f axt -g -k -o ${abbr1}_${abbr2}.result_dir
+	ParaAT.pl -h ${abbr1}_${abbr2}.homolog -n ${abbr1}_${abbr2}.cds -a ${abbr1}_${abbr2}.pep -p ${abbr1}.${abbr2}.proc -m mafft -f axt -g -k -o ${abbr1}_${abbr2}.result_dir
+	#制作可视化的config文件
+	echo -e "${abbr1}\t${latin1}\n${abbr2}\t${latin2}" >${abbr1}.${abbr2}.config.tsv
 }
 
 #输出结果在result_dir目录
@@ -204,16 +221,14 @@ function getkaks(){
 		echo "usage:
 		getkaks abbr1 abbr2
 		"
-		return 1
-		exit
+		exit 1
 	fi
 	abbr1=$1
 	abbr2=$2
 	#判断是否存在result_dir,不存在则需要先运行prepareResult
 	if [ ! -d ${abbr1}_${abbr2}.result_dir ];then
 		echo "请先运行prepareResult函数，以生成准备文件!"
-		return 1
-		exit
+		exit 1
 	fi
 	#合并所有同源基因对的kaks值
 	find ${abbr1}_${abbr2}.result_dir -name "*.axt.kaks"|xargs cat | cut -f 1,3,4,5 | grep -v 'Sequence'|sort|uniq >${abbr1}_${abbr2}.all-kaks.results
@@ -225,16 +240,14 @@ function get4DTv(){
 		echo "usage:
 		get4DTv abbr1 abbr2
 		"
-		return 1
-		exit
+		exit 1
 	fi
 	abbr1=$1
 	abbr2=$2
 	#判断是否存在result_dir,不存在则需要先运行prepareResult
 	if [ ! -d ${abbr1}_${abbr2}.result_dir ];then
 		echo "请先运行prepareResult函数，以生成准备文件!"
-		return 1
-		exit
+		exit 1
 	fi
 	##获取4DTv的值
 	#将多行axt文件转换成单行
@@ -251,30 +264,21 @@ function getkaks4DTv(){
 		echo "usage:
 		getkaks4DTv abbr1 abbr2
 		"
-		return 1
-		exit
+		exit 1
 	fi
 	abbr1=$1
 	abbr2=$2
 	#判断是否存在result_dir,不存在则需要先运行prepareResult
 	if [ ! -e ${abbr1}_${abbr2}.all-4dtv.results ];then
 		echo "请先运行get4DTv函数，以生成4DTv!"
-		return 1
-		exit
+		exit 1
 	fi
 	if [ ! -e ${abbr1}_${abbr2}.all-kaks.results ];then
 		echo "请先运行getkaks函数，以生成kaks!"
-		return 1
-		exit
+		exit 1
 	fi
 	#将kaks结果和4Dtv结果合并
 	join -a 1 -a 2 -1 1 -2 1 ${abbr1}_${abbr2}.all-4dtv.results ${abbr1}_${abbr2}.all-kaks.results |sed '1i\Seq 4dtv_corrected Ka Ks Ka/Ks' >${abbr1}_${abbr2}.all-results.txt
 	#给结果文件添加标题
 	cat ${abbr1}_${abbr2}.all-results.txt|sed 's/ /,/g'   >${abbr1}_${abbr2}.kaks4DTv.csv
 }
-
-
-
-
-
-
