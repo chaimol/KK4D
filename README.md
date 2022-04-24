@@ -38,10 +38,11 @@ The binary version of the dependent software has been provided, and you don’t 
 - [KaKs_Calculator 2.0](https://sourceforge.net/projects/kakscalculator2/)
 - [ParaAT2.0](ftp://download.big.ac.cn/bigd/tools/ParaAT2.0.tar.gz)
 
-
 # Install
-- Step1:Install software (Install.sh will use conda install jcvi,and put other require software to your ~/.bashrc )
+- Step1:Install software (Install.sh will use pip install jcvi,and put other require software to your ~/.bashrc )
 ```
+git clone https://github.com/chaimol/KK4D.git
+cd KK4D
 bash Install.sh
 source ~/.bashrc
 ```
