@@ -5,11 +5,25 @@ This is a pipline for one or two genome analysis of Ka,Ks,4DTv,coline
 ### this is a pipline for analysis of coline genes,KaKs and 4DTv .
 #### It can analysis 2 species or 1 species.
 
-# Input 
+# Input files
 ###  Prepare Input file(can be normal or *.gz)
-genome.gff3 
-genome.pep.fa 
-genome.cds.fa
+- genome.gff3 
+- genome.pep.fa 
+- genome.cds.fa
+
+if you don’t have protein or cds file,you can use [gffread](https://github.com/gpertea/gffread.git) extract protein and cds sequence from genome and gff3 file.
+I wrote the python3 script "getLongerSequences.py" to get the longest transcript sequence for each gene protein or cds sequence.
+
+example bash code
+```
+genome="/share/database/Arachis_ipaensis/GCF_000816755.2_Araip1.1_genomic.fa"
+gff3="/share/database/Arachis_ipaensis/GCF_000816755.2_Araip1.1_genomic.gff"
+abbr="A.ipaensis"
+gffread ${gff3} -g ${genome} -x ${abbr}.cds.fa -y ${abbr}.pep.fa
+python3 getLongerSequences.py ${abbr}.cds.fa ${abbr}.cds .
+python3 getLongerSequences.py ${abbr}.pep.fa ${abbr}.pep .
+```
+The files A.ipaensis.cds and A.ipaensis.pep are the input files for KK4D.
 
 # Require software
 
@@ -33,7 +47,7 @@ source ~/.bashrc
 ```
 - Step2: `KK4D.sh -h` for help
 
-# Use
+# Useage
 Input:
 You can copy config.ini to your working path and modify it to your own configuration information. Use -c config.ini to specify the location of the configuration parameter file,
 Or directly input various parameters.
@@ -43,7 +57,11 @@ Or directly input various parameters.
 
 #### from gff3 cds.fa  protein.fa ,get 1 or 2 species all the above information.
 `KK4D.sh all -c /path/to/config.ini`
+
+#### for A.trichopoda and M.domestica genome chromosome1 gene and protein analysis (This is for the purpose of the testing process only, the general situation is that the whole genome needs to be analyzed.)
 `KK4D.sh all -group 2 -cpu 32 -key ID ID -type mRNA mRNA -sample A.trichopoda M.domestica -abbr Ath Mdo -gff3 Ath.chr1.gff3 Mdo.chr1.gff3 -protein Ath.pep.fa.gz Mdo.genome.protein.fa -cds Ath.cds.fa.gz Mdo.cds.fa -chrnum 1 1`
+
+#### for M.domestica genome analysis 
 `KK4D.sh all -group 1 -cpu 24 -key ID -type mRNA -sample M.domestica -abbr Mdo -gff3 gene_models_20170612.gff3.gz -protein /share/home/Mdo.pep.fa -cds /share/home/Mdo.cds.fa -chrnum 17`
 # Warning
 Please make sure that the input sequence IDs of cds.fa and protein.fa are the same.
