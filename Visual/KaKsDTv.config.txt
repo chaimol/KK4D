@@ -1,0 +1,6 @@
+Csp	C.spinosa	TRUE
+Ath	A.thaliana	TRUE
+Tca	T.cacao	TRUE
+Tha	T.hassleriana	FALSE
+Vvi	V.vinifera	TRUE
+Sly	S.lycopersicum	FALSE

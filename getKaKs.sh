@@ -138,10 +138,13 @@ function VisualColine(){
 	chrnum1=$3
 	chrnum2=$4
 	##可视化
-	cat $abbr1.bed|cut -f1|sort |uniq |head -$chrnum1 |rev|cut -d " " -f1|rev >$abbr1.id
-	cat $abbr1.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr1.ids
-	cat $abbr2.bed|cut -f1|sort |uniq |head -$chrnum2 |rev|cut -d " " -f1|rev >$abbr2.id
-	cat $abbr2.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr2.ids
+	#使用awk对bed文件的第3列挑选每条染色体上最大的基因的位置，然后根据长度倒序排序染色体，选择出最长的n条染色体，然后再按照字母顺序排序染色体，最后把行转为一列，并用逗号分割。
+	awk '{if($3 > max[$1]) max[$1] = $3} END{for(key in max) print key, max[key]}' $abbr1.bed|sort -rn -k2|head -$chrnum1|sort|cut -d " " -f1|tr "\n" ","|sed 's/,$/\n/' >$abbr1.ids	
+	#cat $abbr1.bed|cut -f1|sort |uniq |head -$chrnum1 |rev|cut -d " " -f1cut -d " " -f1|rev >$abbr1.id
+	#cat $abbr1.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr1.ids
+	awk '{if($3 > max[$1]) max[$1] = $3} END{for(key in max) print key, max[key]}' $abbr2.bed|sort -rn -k2|head -$chrnum2|sort|cut -d " " -f1|tr "\n" ","|sed 's/,$/\n/' >$abbr2.ids
+	#cat $abbr2.bed|cut -f1|sort |uniq |head -$chrnum2 |rev|cut -d " " -f1|rev >$abbr2.id
+	#cat $abbr2.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr2.ids
 	cat $abbr1.ids $abbr2.ids >${abbr1}.${abbr2}.seqids
 	
 	# 设置颜色，长宽等,注意下面的代码一定不能修改缩进，否则后续就会报错，python3严格依赖缩进
