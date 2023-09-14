@@ -103,6 +103,7 @@ If your input sequence contains scaffold, and the ID prefix of the chromosome is
 #### 2021.3.18 release the Version 0.01
 #### 2021.3.19 update the Version to 0.02
 #### 2021.4.22 update the Version to 0.04
+#### 2023.9.14 release the Version 0.05 
 Update info:
 1. The V0.01 has to much bug.
 2. All commands in this version have been tested and run normally.
@@ -116,3 +117,5 @@ Update info:
 2. Install jcvi by pip , not require conda.
 #### 2022.4.22 update the Version to 0.04
 1. from this version, can be use -c setting the config.ini path or Or directly enter the parameters.
+#### 2023.9.14 update the version to 0.05 
+1.Repair the order of sorting chromosomes or scaffolds, now automatically obtaining the longest sequence.
