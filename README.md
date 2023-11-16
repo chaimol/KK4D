@@ -48,7 +48,7 @@ source ~/.bashrc
 ```
 - Step2: `KK4D.sh -h` for help
 
-# Useage
+# [Useage](https://chaimol.com/product/KK4D/)
 Input:
 You can copy config.ini to your working path and modify it to your own configuration information. Use -c config.ini to specify the location of the configuration parameter file,
 Or directly input various parameters.

@@ -170,8 +170,8 @@ e, 0, 1, abbr1.abbr2.anchors.simple' >${abbr1}.${abbr2}.layout
 	
 	#准备barplot和sankey的绘图数据
 	cat <(awk '{print $1,$4,$2,$3}' ${abbr1}.bed|sed "s/^/${abbr1}/g") <(awk '{print $1,$4,$2,$3}' ${abbr2}.bed|sed "s/^/${abbr2}/g") |tr " " "\t" >${abbr1}.${abbr2}.gff
-	grep -f <(sed "s/^/${abbr1}/g" ${abbr1}.id) ${abbr1}.${abbr2}.gff >${abbr1}.coline.gff
-	grep -f <(sed "s/^/${abbr2}/g" ${abbr2}.id) ${abbr1}.${abbr2}.gff >${abbr2}.coline.gff
+	grep -f <(sed "s/^/${abbr1}/g" ${abbr1}.ids) ${abbr1}.${abbr2}.gff >${abbr1}.coline.gff
+	grep -f <(sed "s/^/${abbr2}/g" ${abbr2}.ids) ${abbr1}.${abbr2}.gff >${abbr2}.coline.gff
 	cat ${abbr1}.coline.gff ${abbr2}.coline.gff >${abbr1}.${abbr2}.gff
 	grep -v ^# ${abbr1}.${abbr2}.anchors|cut -f1-2 >${abbr1}.${abbr2}.bar.coline
 }
