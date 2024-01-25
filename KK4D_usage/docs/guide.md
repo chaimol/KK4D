@@ -1,3 +1,9 @@
+# Start from the genome.fa and genome.gff3
+if you have genome.fa and genome.gff3,you can get the require inputfile for KK4D as follow:
+```
+
+```
+
 # Warning
 Please make sure that the input sequence IDs of cds.fa and protein.fa are the same. Such as: head Ath.protein.fa
 ```

@@ -6,10 +6,16 @@ path1="$(cd "$(dirname ${BASH_SOURCE[0]})";pwd)"
 #########################################Copyright & Version info#########################################################
 ##Builder Info
 Author="Mol Chai"
-Version="V0.04"
-Builddate="2022-04-22"
+Version="V0.06"
+Builddate="2023-12-22"
 Email="chaimol@163.com"
-Github="https://www.github.com/chaimol/"
+Github="https://www.github.com/chaimol/KK4D"
+
+#检查依赖软件是否正确安装配置
+if [ ! $? -eq 0 ];then
+	bash ${path1}/check_ENV.sh
+	exit 1
+fi
 
 #读取用户输入的参数
 while [ -n "$1" ];
@@ -17,40 +23,51 @@ while [ -n "$1" ];
 		case $1 in
 		-h|--help)
 	echo -e "
-	Usage: 
+	KK4D Usage: 
 	
-	运行方式有2种，指定config.ini的位置运行，或者是直接输入每个参数运行。
-	输入的fa文件和gff3文件可以是普通文件，也可以是gz压缩文件。
-	KK4D.sh all -c config.ini #指定config.ini的位置运行
+	get config.ini file
+	KK4D.sh init  or  KK4D.sh -i 
+	
+	There are two running methods: 
+	specify the location of config.ini to run, 
+	or directly enter each parameter to run.
+	
+	The input fa files and gff3 files can be ordinary files or gz compressed files.
+	
+	Running mode 1: use config.ini as input
+	KK4D.sh all -c config.ini 
+	
+	Running mode 2: Enter all required parameters directly on the command line
 	KK4D.sh all -group 2 -cpu 32 -key ID ID -type mRNA mRNA -sample A.trichopoda M.domestica -abbr Ath Mdo -gff3 Ath.chr1.gff3 Mdo.chr1.gff3 -protein Ath.pep.fa.gz Mdo.genome.protein.fa -cds Ath.cds.fa.gz Mdo.cds.fa -chrnum 1 1
-	KK4D.sh all -group 1 -cpu 24 -key ID -type mRNA -sample M.domestica -abbr Mdo -gff3 gene_models_20170612.gff3.gz -protein /share/home/Mdo.pep.fa -cds /share/home/Mdo.cds.fa -chrnum 17 
-	KK4D.sh coline -group 1 -key ID -type mRNA -sample M.domestica -abbr Mdo -gff3 gene_models_20170612.gff3.gz -protein /share/home/Mdo.pep.fa -cds /share/home/Mdo.cds.fa -chrnum 17 
+	KK4D.sh all -group 1 -cpu 24 -key ID -type mRNA -sample Malus.domestica -abbr Mdo -gff3 gene_models_20170612.gff3.gz -protein /share/home/Mdo.pep.fa -cds /share/home/Mdo.cds.fa -chrnum 17 
+	KK4D.sh coline -group 1 -key ID -type mRNA -sample Malus.domestica -abbr Mdo -gff3 gene_models_20170612.gff3.gz -protein /share/home/Mdo.pep.fa -cds /share/home/Mdo.cds.fa -chrnum 17 
 	
-	#控制命令参数（默认是：all）
+	#Control command parameters (default: all)
 	bed
 	cds
 	pep
 	coline
 	kaks
+	4DTv
 	all
 	
-	#指定输出文件夹
-	-wd|-workpath 默认：是当前所在的路径
+	#workpath
+	-wd|-workpath default：Current working path
 	
-	#使用config.ini文件参数输入参数
-	-c|-config config.ini文件的路径，使用config.ini来输入参数
+	#Use the config.ini file as the input parameter file
+	-c|-config path to config.ini 
 	
-	#输入文件参数(-g|-group参数一定要在最前面)
-	-g|-group 样本组数，只能是1或2，应该和输入的参数的数目一致。否则会出错。
-	-cpu|-threads cpu/进程数量，默认使用24个cpu
-	-k|-key gff3文件的第9列的值,一般是ID
-	-t|-type gff3文件的第3列的字符，一般是gene或mRNA
-	-s|-sample 物种的拉丁学名
-	-a|-abbr 物种3字符缩写
-	-gf|-gff3 gff3文件，可以是gff3或gff3.gz
-	-p|-protein 蛋白文件，可以是fa或fa.gz
-	-cd|-cds CDS序列，可以是fa或fa.gz
-	-chrn|-chrnum 染色体的数量（如果是scaffold，则设置共线性需要展示的scaffold的数量，一般scaffold设置为120）
+	#Enter the file parameters (be sure to enter each required parameter in order, otherwise an error will be reported)
+	-g|-group  genome groups number，here must be set 1 or 2
+	-cpu|-threads use threads,default:24
+	-k|-key Characters in column 9 of gff3 file,general is ID
+	-t|-type Characters in column 3 of gff3 file, general is  gene or mRNA
+	-s|-sample Latin name of species
+	-a|-abbr Abbreviation of species name
+	-gf|-gff3 gff3 file，can be gff3 or gff3.gz
+	-p|-protein protein file, can be fasta or fa.gz
+	-cd|-cds CDS file, can be fasta or fa.gz
+	-chrn|-chrnum The number of chromosomes (if it is scaffold, set the number of scaffolds to be displayed for collinearity, generally set the scaffold to 120)
 	"
 			exit 0
 			;;
@@ -62,6 +79,13 @@ while [ -n "$1" ];
 			Github:${Github} \n
 			Builddate:${Builddate}
 			"
+			exit 0
+			;;
+		-i|init)
+			if ! [[ -f config.ini ]];then
+				cp ${path1}/config.ini config.ini
+				sed -i "s|^WorkPath=.*|WorkPath=\"${PWD}\"|" config.ini #replace the config.ini the workpath to current working path
+			fi
 			exit 0
 			;;
 		bed)
@@ -90,7 +114,7 @@ while [ -n "$1" ];
 			shift
 			;;
 		-c|-config)
-			configfile=`readlink -f $2` #读取config.ini的绝对路径
+			configfile=`readlink -f $2` #get config.ini the absolute path
 			shift
 			;;
 		-cpu|-threads)

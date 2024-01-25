@@ -16,6 +16,7 @@
 		- 'Require software': require.md
 		- Install: install.md
 		- Usage: usage.md
+		- Example：example.md
 		- About: about.md
 
 ## This is the compiled architecture

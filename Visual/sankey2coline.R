@@ -10,8 +10,7 @@ library("ggalluvial")
 args<-commandArgs(T) #收集参数给args变量，则args[1]=1，args[2]=2
 
 ##测试示例文件
-#args <- c("Aip.coline.gff","Dcu.coline.gff","Aip.Dcu.bar.coline","A.ipaensis", "D.cultrata","E:/bioinformation_center/huangtan/coline/Aip_Dcu")
-
+#args <- c("Ath.coline.gff","Osa.coline.gff","Ath.Osa.bar.coline","A.trichopoda", "Oryza.Sativa","E:/Github/KK4D/Visual/Ath_Osa")
 if (length(args) < 6){
   message("Rscript sankey2coline.R gff3file1 gff3file2 colinefile Species1 Species2 workpath") 
   {
@@ -48,7 +47,7 @@ dat_all <- gather(data_all,key="geneID",value="GeneID",c(geneID1,geneID2)) %>%
   gather(key="geneID_len",value="GeneID_len",c(geneID1_len,geneID2_len)) %>% select(-c(geneID,geneID_len))
 
 #随机选取总数的比例，
-dat1 <- sample_frac(dat_all,0.01)
+dat1 <- sample_frac(dat_all,0.1)
 #dat1 <- dat_all
 p1 <- ggplot(dat1,
              aes(y = GeneID_len,
@@ -56,7 +55,7 @@ p1 <- ggplot(dat1,
   geom_alluvium(aes(fill = ChrID2),width = 0, 
                  reverse = FALSE) + #knot.pos是控制曲线的弯曲程度的，0-1越大越弯
   theme_classic()+
-  geom_stratum(width = 1/10, reverse = FALSE,alpha=0.5) + #设置三根柱子的宽度、透明度
+  geom_stratum(width = 1/12, reverse = FALSE,alpha=0.5) + #设置三根柱子的宽度、透明度
   geom_text(stat = "stratum", aes(label = after_stat(stratum)),
             reverse = FALSE) +
   scale_x_continuous(breaks = 1:2, labels = latin_label) +
@@ -65,21 +64,19 @@ p1 <- ggplot(dat1,
   theme(legend.position = "none",axis.ticks.x = element_blank(),
         axis.ticks.y = element_blank(),axis.line = element_blank(),axis.text.x = element_blank())+
   scale_y_continuous(expand = c(0, 0))
-
 p2 <- ggplot(dat1,
              aes(y = GeneID_len,
                  axis1 = ChrID1, axis2 = ChrID2)) +
   geom_alluvium(aes(fill = ChrID2),
                 width = 0, knot.pos = 0.35, reverse = FALSE) +#knot.pos是控制曲线的弯曲程度的，0-1越大越弯
   theme_classic()+
-  geom_stratum(width = 1/10, reverse = FALSE,alpha=0.8) + #设置三根柱子的宽度、透明度
+  geom_stratum(width = 1/12, reverse = FALSE,alpha=0.8) + #设置三根柱子的宽度、透明度
   geom_text(angle=0,stat = "stratum", aes(label = after_stat(stratum)),reverse = FALSE) +
   scale_x_continuous(breaks = 1:2, labels = latin_label) +
   labs(x="",y="")+
   theme(legend.position = "none",axis.ticks.x = element_blank(),
         axis.ticks.y = element_blank(),axis.line = element_blank(),axis.text.y = element_blank())+
   scale_y_continuous(expand = c(0, 0))
-
 if(! require("patchwork")){install.packages("patchwork")}
 library("patchwork")#拼图包，拼图
 ggsave(paste0(latin_label[1],".",latin_label[2],".sankey.pdf"),p1/p2)

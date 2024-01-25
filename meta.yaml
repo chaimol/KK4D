@@ -1,5 +1,5 @@
 {% set name = "KK4D" %}
-{% set version = "0.04" %}
+{% set version = "0.06" %}
 
 package:
   name: "{{ name|lower }}"
@@ -25,7 +25,7 @@ test:
     - click
 
 about:
-  home: https://palletsprojects.com/p/click/
-  license: BSD
-  license_family: BSD
-  summary: Composable command line interface toolkit
+  home: https://chaimol.com/product/KK4D/
+  license: MIT
+  license_family: MIT
+  summary: KK4D:Comparative genomics analysis tools

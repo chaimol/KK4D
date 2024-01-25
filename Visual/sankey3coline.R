@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-########用处：用于绘制2个基因组的共线性的桑吉图。
+########用处：用于绘制3个基因组的共线性的桑吉图。
 
 library("tidyverse")
 library("ggplot2")

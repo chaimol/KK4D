@@ -6,6 +6,7 @@ chmod 757 KK4D.sh
 chmod 757 getKaKs.sh
 chmod 757 KaKs_Calculator2.0/bin/Linux/KaKs_Calculator
 chmod 757 mafft/mafft
+chmod 757 mafft/mafftdir/bin/mafft
 chmod 757 seqkit
 chmod 757 Visual/bar2coline.R
 chmod 757 Visual/drawKaKs4DTV.R
@@ -17,7 +18,6 @@ echo "export PATH=${PWD}:\$PATH" >>~/.bashrc
 # conda activate mmdetection
 # conda install -y jcvi
 #从V0.03版本开始，直接安装jcvi,不在使用conda安装了。
-pip install jcvi
 #或者直接使用pip安装jcvi也可以
 #pip install jcvi
 echo "export PATH=${PWD}/KaKs_Calculator2.0/bin/Linux:\$PATH" >>~/.bashrc

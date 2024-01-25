@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-
+#绘制基因组共线性的上下染色体分布的线段堆叠图，如果是1个基因组内部的分析，则不会进行绘图。
 if(! require("tidyverse")){install.packages("tidyverse")}
 if(! require("ggplot2")){install.packages("ggplot2")}
 if(! require("patchwork")){install.packages("patchwork")}
@@ -7,11 +7,11 @@ if(! require("RColorBrewer")){install.packages("RColorBrewer")}
 library("tidyverse")
 library("patchwork") #拼图
 library("ggplot2")
-#library(paletteer) #用于生成颜色向量
 library("RColorBrewer")#用于生成颜色向量
 
 args<-commandArgs(T) #收集参数给args变量，则args[1]=1，args[2]=2
-#args <- c("Csp.Ath.gff","Csp.Ath.bar.coline","Ath","Csp","E:/Github/KK4D_develop/Visual/")
+#args <- c("Ath.Osa.gff","Ath.Osa.bar.coline","Osa","Ath","E:/Github/KK4D/Visual/Ath_Osa")
+#args <- c("Ath.Osa.gff","Ath.Osa.bar.coline","Ath","Osa","E:/Github/KK4D/Visual/Ath_Osa")
 if (length(args) < 5){
   print("Rscript bar_coline.R gff3file colinefile figset_up figset_down PWD") 
   {
@@ -25,6 +25,9 @@ figset_up <- args[3] #上面的图的染色体的前面的三字符
 figset_down <- args[4] #下面的图的染色体的前面的三字符
 wd_path <- args[5] #工作路径
 setwd(wd_path)
+
+#如果上面和下面的字符串一致，说明是一个基因组内的比较，此类比较不绘图。
+if(figset_up== figset_down){stop("Analysis within a genome will not plot")}
 #cat Ath_Csp.collinearity|grep -v ^#|cut -f2,3 >Ath_Csp.colline
 
 #检测输入文件是否存在
@@ -90,14 +93,30 @@ colnames(data_all) <- c("Species1","Species2","S1_chr","S1_start","S1_end","S2_c
 All_data1 <-  mutate(data_all,S1_len=abs(S1_end + S1_start)/2,S2_len=(S2_end + S2_start)/2) %>% select(-c(S1_start,S1_end,S2_start,S2_end))
 
 
+#获取geom_bar的柱子的宽度，用于传递给上层的散点线。输入参数是一个ggplot2绘图的对象
+getbarwidth <- function(p){
+  # 获取 ggplot2 绘图对象的信息
+  p_build <- ggplot_build(p)
+  # 提取柱状图的绘图信息
+  bar_data <- p_build$data[[1]]
+  # 计算柱状图的宽度
+  bar_width <- max(bar_data$xmax)
+  return(bar_width)  
+}
+
+#获取染色体的数量
+upchrnum<- length(upchr$up_chr)
+downchrnum<- length(downchr$down_chr)
+
 #控制上下图的染色体的位置，根据输入的最后figset_up和figset_down的位置来判断上下
 if ( all(is.element(upchr$up_chr[1],All_data1$S2_chr))){
   All_data2 <- merge(All_data1,upchr,by.x = "S2_chr",by.y = "up_chr")
   All_data <- merge(All_data2,downchr,by.x = "S1_chr",by.y = "down_chr")
-  p3 <- 
+  p3_1<- 
     ggplot() + 
-    geom_bar(data=downchr,aes(x=down_chr,y=down_maxchr),fill="white",colour="grey",stat = "identity",width=0.5) + #底层的柱状图
-    geom_point(data=All_data,aes(x= S1_chr,y=S1_len,colour=up_color),shape = 95, size = 6, alpha = 0.8) + #上层的点图（点形状是线）
+    geom_bar(data=downchr,aes(x=down_chr,y=down_maxchr),fill="white",colour="grey",stat = "identity",width=0.2*downchrnum/upchrnum)#底层的柱状图
+    linesize <- getbarwidth(p3_1)
+    p3 <- p3_1 +geom_point(data=All_data,aes(x= S1_chr,y=S1_len,colour=up_color),shape = 95, size = linesize, alpha = 1) + #上层的点图（点形状是线）
     theme_classic() + 
     labs(x="",y="")+
     theme(legend.position = "none",axis.ticks.x = element_blank(),
@@ -107,10 +126,11 @@ if ( all(is.element(upchr$up_chr[1],All_data1$S2_chr))){
   }else{
   All_data2 <- merge(All_data1,upchr,by.x = "S1_chr",by.y = "up_chr")
   All_data <- merge(All_data2,downchr,by.x = "S2_chr",by.y = "down_chr")
-  p3 <- 
+  p3_1 <- 
     ggplot() + 
-    geom_bar(data=downchr,aes(x=down_chr,y=down_maxchr),fill="white",colour="grey",stat = "identity",width=0.5) + #底层的柱状图
-    geom_point(data=All_data,aes(x= S2_chr,y=S2_len,colour=up_color),shape = 95, size = 6, alpha = 0.8) + #上层的点图（点形状是线）
+    geom_bar(data=downchr,aes(x=down_chr,y=down_maxchr),fill="white",colour="grey",stat = "identity",width=0.2*downchrnum/upchrnum) #底层的柱状图
+    linesize <- getbarwidth(p3_1)
+    p3 <- p3_1+geom_point(data=All_data,aes(x= S2_chr,y=S2_len,colour=up_color),shape = 95, size = linesize, alpha = 0.8) + #上层的点图（点形状是线）
     theme_classic() + 
     labs(x="",y="")+
     theme(legend.position = "none",axis.ticks.x = element_blank(),

@@ -1,5 +1,5 @@
 # KK4D info
-- Version: 0.05
+- Version: 1.00
 - Author: Mao Chai
 - Email: chaimol@163.com
-- Build Date: 2023.11.16
+- Build Date: 2024.01.18

@@ -16,16 +16,21 @@ args<-commandArgs(T) #收集参数给args变量
 #第3个参数是工作路径
 # 输入文件是config.tsv
 #第4个参数是KaKs|4DTv|both,三选一，决定分析的是哪一种输入文件
-#args <- c("Dcu","Dod.Dcu.config.tsv","E:/bioinformation_center/huangtan/coline/Dod_Dcu","both")
-#args <- c("Dod","Dod.Dod.config.tsv","E:/bioinformation_center/huangtan/coline/Dod","both")
+#第5个参数是碱基的突变率，默认值是7E-9,可以不提供此参数。用于计算Ks的插入时间时使用。
+#args <- c("Osa","Ath.Osa.config.tsv","E:/Github/KK4D/Visual/Ath_Osa","both","7E-9")
+#args <- c("Ghi","Ghi.Ghi.config.tsv","E:/Github/KK4D论文/AD1","both","7E-9")
 if ( length(args)==0 | args[1] == "-h" | args[1] == "--help" | length(args)<4){
   stop("
-       Usage: 
-       KaKs4DTv.R ref_genome_abbr config.tsv workpath both 
+       Usage:
+       KaKs4DTv.R ref_genome_abbr config.tsv workpath both
        KaKs4DTv.R ref_genome_abbr config.tsv workpath KaKs
        KaKs4DTv.R ref_genome_abbr config.tsv workpath 4DTv
+       KaKs4DTv.R ref_genome_abbr config.tsv workpath KaKs 3.85E-9
+       KaKs4DTv.R ref_genome_abbr config.tsv workpath both 7.8E-9
+
+       Default param5 lamda:7E-9
        Note:config.tsv Separator must be tab.
-       
+
        Example config.tsv:
        Ath  A.thaliana
        Tca  T.cacao
@@ -59,6 +64,13 @@ control_latin_species <- all_latin_species[control_index]
 all_abbr_species <- all_abbr_species[-control_index]
 all_latin_species <- all_latin_species[-control_index]
 
+#设置全局变量lamda,如果用户不提供，则使用默认值7E-9
+if (!is.na(args[5])) {
+  lamda <- args[5]
+} else {
+  lamda <- 7E-9
+}
+
 #读取和目标物种比较的结果
 read_data <- function(in_file_str){
   #定义读取文件的函数
@@ -69,7 +81,7 @@ read_data <- function(in_file_str){
     data1 <- data.frame(data1)
     data1$Type <- latin_name
     return(data1)
-  } 
+  }
   #获取所有的物种的输出结果
   all_data <- data.frame()
   for (i in 1:length(all_abbr_species)){
@@ -78,6 +90,7 @@ read_data <- function(in_file_str){
   }
   return(all_data) #返回最终的读取的结果的数据框
 }
+
 
 draw_peak <- function(key_str,adjust=1){#adjust可以控制曲线的平滑度，值越大越平滑
   P_Ks <- ggplot(all_data,aes(x=get(key_str),group=Type))+geom_density(alpha=0.4,aes(color=Type),adjust=adjust,trim=TRUE)+theme_classic()+
@@ -89,24 +102,26 @@ draw_peak <- function(key_str,adjust=1){#adjust可以控制曲线的平滑度，
   print(paste0("output image to ",getwd(),"/",key_str,"_new.pdf"))
   ##############计算ks的时间################
   get_ks_time <- function(x_peak){
-    lamda <- 8.83E-9 #3.48E-9
-    Ks_time <- x_peak/(2*lamda)
+    lamda_value <- as.numeric(lamda) #这是全局变量，默认是：7E-9
+    Ks_time <- x_peak/(2*lamda_value)
     time <- Ks_time/1E6
     return(time)
   }
-  
   ######################获取峰值
   #获取每一个峰值,输入参数dat,只能有1列
   get_peak <- function(dat,type_name){
     d <- density(dat[,1])
     modes <- function(d){
-      i <- which(diff(sign(diff(d$y))) < 0) + 1
+      max_i <- which(diff(sign(diff(d$y))) < 0) + 1#求出连续三个数变化率最高的极大值
+      #slp <- diff(d$y) / diff(d$x) #求出每个位置的数据点的斜率
+      #j <- which(abs(slp)>0.05)+1 #过滤获取斜率的绝对值>0.1的位置
+      i <- max_i[which(d$y[max_i]>0.05)] #控制y轴坐标要大于0.05的点
+      #i <- intersect(i,j) #求交集，极大值和斜率绝对值大于0.1的点，通过斜率来过滤一部分点
       peak_time <- get_ks_time(d$x[i])
       data.frame(x = d$x[i], y = d$y[i],peak_time=peak_time,type=type_name,peak_type=key_str)
     }
     return(modes(d))
   }
-  
   all_Kspeak <- data.frame()
   for (i in 1:length(all_latin_species)){
     species_peak <- paste0(all_latin_species[i],"_Ks_peak")
@@ -117,7 +132,7 @@ draw_peak <- function(key_str,adjust=1){#adjust可以控制曲线的平滑度，
   #print(all_Kspeak)
   write.csv(all_Kspeak,paste0("All.",key_str,"_peak.csv"),quote = F,row.names = F)
   print(paste0("output all the peak to ",getwd(),"/All.",key_str,"_peak.csv"))
-  
+
   #绘制峰值的分布图
   ##绘制主图
   ggplot()+geom_density(data=all_data,aes(x=get(key_str),group=Type,color=Type,trim=TRUE),alpha=0.4)+theme_classic()+
@@ -125,7 +140,7 @@ draw_peak <- function(key_str,adjust=1){#adjust可以控制曲线的平滑度，
     scale_y_continuous(guide = "prism_offset_minor")+scale_x_continuous(guide = "prism_offset_minor")+xlab(key_str)+
   #绘制点的标签
     geom_text(data=all_Kspeak,aes(x=x,y=y,label = round(x,3),color=type),position=position_dodge(width=0.5),vjust='inward',hjust='inward')+
-  #绘制峰值点  
+  #绘制峰值点
     geom_point(data=all_Kspeak, aes(x=x, y=y,color=type))
   ggsave(paste0(key_str,"_new.peak.png"),dpi=300)
   ggsave(paste0(key_str,"_new.peak.pdf"),dpi=300)
@@ -148,3 +163,4 @@ if (args[4] == "both"){
 } else{
   stop("参数4错误！请重新输入")
 }
+

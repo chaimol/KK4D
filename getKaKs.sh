@@ -1,6 +1,5 @@
 #!/usr/bin/bash
-####此程序是函数定义脚本。主运行脚本是run.sh
-
+####此程序是函数定义脚本。主运行脚本是KK4D.sh
 ##读取配置文件
 #source config.ini
 if [ ${group} -eq 2 ];then
@@ -40,10 +39,8 @@ else
 fi
 
 ##获取输入文件
-
 #test.cds #每个基因最长的转录本的DNA序列
 #test.pep #每个基因最长的蛋白序列
-
 
 #从gff3文件获取bed,用法：getbed gff3file output前缀 第三列的type 第9列的前缀字符
 function getbed(){
@@ -91,7 +88,9 @@ function getcds(){
 		input_cdsfa=$1
 		prefix=$2
 	fi
-	seqkit grep -f <(cut -f4 ${prefix}.bed) ${input_cdsfa} | seqkit seq -i >${prefix}.cds
+	temp_cds=$(mktemp "${prefix}.XXXXXXXX") #使用临时文件作为输出，避免输出文件和输入文件名重复，而造成输出空文件的bug.
+	seqkit grep -f <(cut -f4 ${prefix}.bed) ${input_cdsfa} | seqkit seq -i >$temp_cds
+	mv $temp_cds ${prefix}.cds
 }
 
 function getpep(){
@@ -106,7 +105,9 @@ function getpep(){
 		input_proteinfa=$1
 		prefix=$2
 	fi
-	seqkit grep -f <(cut -f4 ${prefix}.bed) ${input_proteinfa}  | seqkit seq -i >${prefix}.pep
+	temp_pep=$(mktemp "${prefix}.XXXXXXXX")
+	seqkit grep -f <(cut -f4 ${prefix}.bed) ${input_proteinfa}  | seqkit seq -i > $temp_pep
+	mv $temp_pep ${prefix}.pep
 }
 
 
@@ -139,12 +140,8 @@ function VisualColine(){
 	chrnum2=$4
 	##可视化
 	#使用awk对bed文件的第3列挑选每条染色体上最大的基因的位置，然后根据长度倒序排序染色体，选择出最长的n条染色体，然后再按照字母顺序排序染色体，最后把行转为一列，并用逗号分割。
-	awk '{if($3 > max[$1]) max[$1] = $3} END{for(key in max) print key, max[key]}' $abbr1.bed|sort -rn -k2|head -$chrnum1|sort|cut -d " " -f1|tr "\n" ","|sed 's/,$/\n/' >$abbr1.ids	
-	#cat $abbr1.bed|cut -f1|sort |uniq |head -$chrnum1 |rev|cut -d " " -f1cut -d " " -f1|rev >$abbr1.id
-	#cat $abbr1.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr1.ids
+	awk '{if($3 > max[$1]) max[$1] = $3} END{for(key in max) print key, max[key]}' $abbr1.bed|sort -rn -k2|head -$chrnum1|sort|cut -d " " -f1|tr "\n" ","|sed 's/,$/\n/' >$abbr1.ids
 	awk '{if($3 > max[$1]) max[$1] = $3} END{for(key in max) print key, max[key]}' $abbr2.bed|sort -rn -k2|head -$chrnum2|sort|cut -d " " -f1|tr "\n" ","|sed 's/,$/\n/' >$abbr2.ids
-	#cat $abbr2.bed|cut -f1|sort |uniq |head -$chrnum2 |rev|cut -d " " -f1|rev >$abbr2.id
-	#cat $abbr2.id|awk 'BEGIN{c=0;} {for(i=1;i<=NF;i++) {num[c,i] = $i;} c++;} END{ for(i=1;i<=NF;i++){str=""; for(j=0;j<NR;j++){ if(j>0){str = str","} str= str""num[j,i]}printf("%s\n", str)} }' >$abbr2.ids
 	cat $abbr1.ids $abbr2.ids >${abbr1}.${abbr2}.seqids
 	
 	# 设置颜色，长宽等,注意下面的代码一定不能修改缩进，否则后续就会报错，python3严格依赖缩进
@@ -161,17 +158,16 @@ e, 0, 1, abbr1.abbr2.anchors.simple' >${abbr1}.${abbr2}.layout
 	echo "${abbr1}_${abbr2}.block.coline.pdf is the coline picture!"
 	
 	#输出的是具体的基因对的共线性
-	cat ${abbr1}.${abbr2}.anchors|grep -v ^#|awk '{print $1"\t"$1"\t"$2"\t"$2"\t"$3"\t""+"}' >${abbr1}.${abbr2}.anchors.sample
-	sed -i 's/simple/sample/g' ${abbr1}.${abbr2}.layout
-	python3 -m jcvi.graphics.karyotype ${abbr1}.${abbr2}.seqids ${abbr1}.${abbr2}.layout --font=Arial --nocircles 
-	#输出的是基于块的共线性
+	cat ${abbr1}.${abbr2}.anchors|grep -v ^#|awk '{print $1"\t"$1"\t"$2"\t"$2"\t"$3"\t""+"}' >${abbr1}.${abbr2}.anchors.gene
+	sed 's/simple/gene/g' ${abbr1}.${abbr2}.layout >${abbr1}.${abbr2}.layout.gene
+	python3 -m jcvi.graphics.karyotype ${abbr1}.${abbr2}.seqids ${abbr1}.${abbr2}.layout.gene --font=Arial --nocircles 
 	mv karyotype.pdf ${abbr1}_${abbr2}.gene.coline.pdf
 	echo "${abbr1}_${abbr2}.gene.coline.pdf is the coline picture!"
 	
 	#准备barplot和sankey的绘图数据
 	cat <(awk '{print $1,$4,$2,$3}' ${abbr1}.bed|sed "s/^/${abbr1}/g") <(awk '{print $1,$4,$2,$3}' ${abbr2}.bed|sed "s/^/${abbr2}/g") |tr " " "\t" >${abbr1}.${abbr2}.gff
-	grep -f <(sed "s/^/${abbr1}/g" ${abbr1}.ids) ${abbr1}.${abbr2}.gff >${abbr1}.coline.gff
-	grep -f <(sed "s/^/${abbr2}/g" ${abbr2}.ids) ${abbr1}.${abbr2}.gff >${abbr2}.coline.gff
+	grep -f <(sed "s/,/\n/g;s/^/${abbr1}/g" ${abbr1}.ids) ${abbr1}.${abbr2}.gff >${abbr1}.coline.gff
+	grep -f <(sed "s/,/\n/g;s/^/${abbr1}/g" ${abbr1}.ids) ${abbr1}.${abbr2}.gff >${abbr2}.coline.gff
 	cat ${abbr1}.coline.gff ${abbr2}.coline.gff >${abbr1}.${abbr2}.gff
 	grep -v ^# ${abbr1}.${abbr2}.anchors|cut -f1-2 >${abbr1}.${abbr2}.bar.coline
 }

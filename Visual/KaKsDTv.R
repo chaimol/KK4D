@@ -18,7 +18,7 @@ args<-commandArgs(T) #收集参数给args变量
 #第3个参数是工作路径
 # 输入文件是config.txt
 #第4个参数是KaKs|4DTv|both,三选一，决定分析的是哪一种输入文件
-args <- c("Csp","config.txt","E:/bioinformation_center/laoshugua/KaKs/V2","both")
+#args <- c("Csp","config.txt","E:/bioinformation_center/laoshugua/KaKs/V2","both")
 
 if ( length(args)==0 | args[1] == "-h" | args[1] == "--help" | length(args)<4){
   stop("\n Usage: 
