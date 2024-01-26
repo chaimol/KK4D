@@ -6,7 +6,7 @@ path1="$(cd "$(dirname ${BASH_SOURCE[0]})";pwd)"
 #########################################Copyright & Version info#########################################################
 ##Builder Info
 Author="Mol Chai"
-Version="V0.06"
+Version="V1.0"
 Builddate="2023-12-22"
 Email="chaimol@163.com"
 Github="https://www.github.com/chaimol/KK4D"

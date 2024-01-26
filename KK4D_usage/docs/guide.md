@@ -1,8 +1,13 @@
 # Start from the genome.fa and genome.gff3
 if you have genome.fa and genome.gff3,you can get the require inputfile for KK4D as follow:
-```
+
+ - genome file:GCF_000816755.2_Araip1.1_genomic.fa
+ - genome gff3 file:GCF_000816755.2_Araip1.1_genomic.gff
 
 ```
+bash genome2cdspep.sh GCF_000816755.2_Araip1.1_genomic.fa GCF_000816755.2_Araip1.1_genomic.gff A.ipaensis .
+```
+The files A.ipaensis.cds and A.ipaensis.pep are the input files for KK4D.
 
 # Warning
 Please make sure that the input sequence IDs of cds.fa and protein.fa are the same. Such as: head Ath.protein.fa
@@ -37,18 +42,9 @@ Before each script is run, it will check whether the output file of the previous
 
 # Require input file
 Prepare Input file(can be normal or *.gz)
+
 - genome.gff3
 - genome.pep.fa
 - genome.cds.fa
-if you don’t have protein or cds file,you can use gffread extract protein and cds sequence from genome and gff3 file. I wrote the python3 script "getLongerSequences.py" to get the longest transcript sequence for each gene protein or cds sequence.
 
-example bash code
-```
-genome="/share/database/Arachis_ipaensis/GCF_000816755.2_Araip1.1_genomic.fa"
-gff3="/share/database/Arachis_ipaensis/GCF_000816755.2_Araip1.1_genomic.gff"
-abbr="A.ipaensis"
-gffread ${gff3} -g ${genome} -x ${abbr}.cds.fa -y ${abbr}.pep.fa
-python3 getLongerSequences.py ${abbr}.cds.fa ${abbr}.cds .
-python3 getLongerSequences.py ${abbr}.pep.fa ${abbr}.pep .
-```
-The files A.ipaensis.cds and A.ipaensis.pep are the input files for KK4D.
+if you don’t have protein or cds file,you can use gffread extract protein and cds sequence from genome and gff3 file. I wrote the python3 script "getLongerSequences.py" to get the longest transcript sequence for each gene protein or cds sequence.

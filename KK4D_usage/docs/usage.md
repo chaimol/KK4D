@@ -5,6 +5,7 @@ bash genome2cdspep.sh genome.fa genome.gff3 genome_abbr key_str
 ```
 `key_str` is the dividing character that distinguishes different transcripts, usually `.` or `-`
 Output file for KK4D:
+
 - genome_abbr.pep
 - genome_abbr.cds 
 
@@ -25,7 +26,7 @@ bash genome2cdspep.sh Ath.genome.fa Ath.gff3 Ath .
 ```
 This script will finally output Ath.pep and Ath.cds, which are the protein sequence and CDS sequence as input to KK4D.
 
-# Option2: Start with genome.gff3,genome.pep,genome.cds file.
+# Option2: Start with genome.gff3, genome.pep, genome.cds file.
 Input: You can copy config.ini to your working path and modify it to your own configuration information. Use -c config.ini to specify the location of the configuration parameter file, Or directly input various parameters.
 
 ## get the config.ini file
@@ -40,7 +41,9 @@ This will create a config.ini file in your current working path.
 KK4D.sh all -c /path/to/config.ini
 ```
 
-## for A.trichopoda and M.domestica genome chromosome1 gene and protein analysis (This is for the purpose of the testing process only, the general situation is that the whole genome needs to be analyzed.)
+## for A.trichopoda and M.domestica genome chromosome1 gene and protein analysis 
+(This is for the purpose of the testing process only, the general situation is that the whole genome needs to be analyzed.)
+
 `KK4D.sh all -group 2 -cpu 32 -key ID ID -type mRNA mRNA -sample A.trichopoda M.domestica -abbr Ath Mdo -gff3 Ath.chr1.gff3 Mdo.chr1.gff3 -protein Ath.pep.fa.gz Mdo.genome.protein.fa -cds Ath.cds.fa.gz Mdo.cds.fa -chrnum 1 1`
 
 ## for M.domestica genome analysis

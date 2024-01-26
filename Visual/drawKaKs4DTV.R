@@ -6,7 +6,7 @@
 #####输入参数有3个：ref_genome_abbr config.tsv workpath
 ###获取脚本的输入的参数
 args<-commandArgs(T) #收集参数给args变量
-#Usage:Rscript KaKs4DTv.R ref_genome_abbr config.tsv workpath
+#Usage:Rscript KaKs4DTv.R ref_genome_abbr config.tsv workpath both
 #第1个参数是用于输出的文件名的前缀
 #第2个参数是输入配置文件config.tsv格式如下：要求使用的是tab分割符
 #Ath  A.thaliana

@@ -162,3 +162,7 @@ If your input sequence contains scaffold, and the ID prefix of the chromosome is
 2. Fixed an empty file bug that would occur when the input file and KK4D output file have the same name.
 3. Added example genome data
 4. Updated Chinese and English instructions for use
+
+
+## citations
+Mao Chai. (2023). KK4D: A pipeline for analyzing collinearity, Ka, Ks, 4DTv of two genomes (V1.0). Zenodo.https://doi.org/10.5281/zenodo.8342998. 

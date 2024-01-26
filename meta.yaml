@@ -1,5 +1,5 @@
 {% set name = "KK4D" %}
-{% set version = "0.06" %}
+{% set version = "1.0" %}
 
 package:
   name: "{{ name|lower }}"

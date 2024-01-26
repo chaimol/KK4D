@@ -8,5 +8,5 @@ source ~/.bashrc
 ```
 # 2.check the install
 ```
-KK4D.sh -h for help
+KK4D.sh -h
 ```
